@@ -1,5 +1,6 @@
 package com.ak.androidstudioproject
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,38 +13,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.ak.androidstudioproject.ui.theme.AndroidStudioProjectTheme
-import timber.log.Timber
+import com.ak.androidstudioproject.TextEditActivity
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            AndroidStudioProjectTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
-        }
-        Timber.d("Success")
-    }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AndroidStudioProjectTheme {
-        Greeting("Android")
+        android.util.Log.d("MyApp", "MainActivity onCreate started")
+        val intent = Intent(this, TextEditActivity::class.java)
+        android.util.Log.d("MyApp", "TextEditActivity started")
+        startActivity(intent)
+        finish()
     }
 }

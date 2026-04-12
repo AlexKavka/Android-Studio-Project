@@ -1,23 +1,10 @@
-package com.ak.androidstudioproject.model
+package com.ak.androidstudioproject.AppDetailes.Domain
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.json.JSONArray
 import org.json.JSONObject
-
-data class AppUrls (
-    val urls : List<String>
-)
-
-data class PreCardInfo (
-    val url : String,
-    val iconUrl : String,
-    val appName : String,
-    val shortDescription : String,
-    val categories: List<String>
-)
 
 data class FullCardInfo (
     val url : String,
@@ -32,8 +19,6 @@ data class FullCardInfo (
 )
 
 interface AppsRepository {
-    suspend fun getAppUrls(): AppUrls?
-    suspend fun getAppPreCard(packageName: String) : PreCardInfo?
     suspend fun getFullAppInfo(packageName: String) : FullCardInfo?
 }
 
@@ -55,10 +40,9 @@ class ApiService {
 }
 
 class AppsRepositoryImpl(
-    private val apiService: ApiService  // ← Внедряете ваш ApiService
+    private val apiService: ApiService
 ) : AppsRepository {
 
-    private val preCardCache =  mutableMapOf<String, PreCardInfo>()
     private val fullCardCache =   mutableMapOf<String, FullCardInfo>()
 
     // Для списка

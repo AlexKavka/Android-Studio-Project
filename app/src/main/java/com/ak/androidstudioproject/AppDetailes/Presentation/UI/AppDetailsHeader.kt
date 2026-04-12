@@ -1,4 +1,4 @@
-package com.ak.androidstudioproject.AppDetailesScreen
+package com.ak.androidstudioproject.AppDetailes.Presentation.UI
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -16,16 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.ak.androidstudioproject.model.FullCardInfo
-import com.ak.androidstudioproject.viewModel.FullCardState
-import kotlin.math.roundToInt
 
 @Composable
 fun AppDetailsHeader(

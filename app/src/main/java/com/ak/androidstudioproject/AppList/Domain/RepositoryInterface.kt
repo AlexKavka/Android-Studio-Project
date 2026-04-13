@@ -1,4 +1,6 @@
 package com.ak.androidstudioproject.AppList.Domain
 
-class RepositoryInterface {
+interface AppsListRepository {
+    suspend fun getAppUrls(): AppList?
+    suspend fun getAppPreCard(packageName: String) : PreCardInfo?
 }

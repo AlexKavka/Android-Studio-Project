@@ -1,4 +1,8 @@
 package com.ak.androidstudioproject.AppDetailes.Domain
 
-class RepositoryInterface {
+interface AppDetailsRepository {
+    suspend fun getFullAppInfo(packageName: String) : FullCardInfo?
 }
+
+
+

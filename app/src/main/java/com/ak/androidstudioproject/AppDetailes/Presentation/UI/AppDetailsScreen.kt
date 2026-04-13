@@ -2,6 +2,7 @@ package com.ak.androidstudioproject.AppDetailes.Presentation.UI
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,9 +10,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButtonDefaults.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,10 +32,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.ak.androidstudioproject.model.AppsRepository
-import com.ak.androidstudioproject.viewModel.FullCardState
-import com.ak.androidstudioproject.viewModel.FullCardViewModel
+import androidx.compose.ui.unit.sp
+import com.ak.androidstudioproject.AppDetailes.Domain.*
+import com.ak.androidstudioproject.AppDetailes.Presentation.ViewModel.*
 
 @Composable
 fun fullCardLoading() {
@@ -123,15 +136,68 @@ fun fullCardSucces(
 }
 
 @Composable
-fun fullCardError() {
+fun fullCardError(
+    modifier: Modifier,
+    onBackClick: () -> Unit,
+    onShareClick: (String) -> Unit
+) {
     val context = LocalContext.current
+
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+
+        Toolbar(
+            onBackClick = onBackClick,
+            onShareClick = { onShareClick("А куда?") }
+        )
+
+        Spacer(Modifier.height(80.dp))
+
+        Text(
+            text = "Ошибка загрузки",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            color = Color.Blue
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Не удалось загрузить информацию о приложении",
+            fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 32.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                Toast.makeText(context, "Повторная загрузка...", Toast.LENGTH_SHORT).show()
+                // потом обрабатаю
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Blue
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Refresh,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "Попробовать снова")
+        }
+    }
+
     Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show()
 }
 
 @Composable
 fun AppDetailsScreen(
     packageName : String,
-    rep : AppsRepository,
+    rep : AppDetailsRepository,
     modifier: Modifier = Modifier,
     onBackClick : () -> Unit = {},
     onShareClick : (String) -> Unit = {},
@@ -162,8 +228,7 @@ fun AppDetailsScreen(
         }
 
         is FullCardState.Error -> {
-            //может обавить отладку сюда
-            fullCardError()
+            fullCardError(modifier, onBackClick, onShareClick)
 
         }
     }

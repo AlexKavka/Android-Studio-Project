@@ -1,7 +1,9 @@
-package com.ak.androidstudioproject.viewModel
+package com.ak.androidstudioproject.AppList.Presentation.ViewModel
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ak.androidstudioproject.model.*
+import com.ak.androidstudioproject.AppList.Domain.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,22 +20,11 @@ sealed interface PreCardState {
     ) : PreCardState
 }
 
-sealed interface FullCardState {
-    data object Initial : FullCardState
-    data object Loading : FullCardState
-    data class Success(
-        val fullCard: FullCardInfo
-    ) : FullCardState
-    data class Error(
-        val state : Boolean
-    ) : FullCardState
-}
-
 sealed interface ListState {
     data object Initial : ListState
     data object Loading : ListState
     data class Success(
-        val list: AppUrls
+        val list: AppList
     ) : ListState
     data class Error(
         val state : Boolean
@@ -41,7 +32,7 @@ sealed interface ListState {
 }
 
 class ListViewModel (
-    private val rep : AppsRepository
+    private val rep : AppsListRepository
 ) : ViewModel () {
 
     private val _listState = MutableStateFlow<ListState>(ListState.Initial)
@@ -57,7 +48,7 @@ class ListViewModel (
     }
 
     private fun loadAppsUrls() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
 
             val currentState = _listState.value
             if (currentState is ListState.Loading || currentState is ListState.Success) {
@@ -84,25 +75,20 @@ class ListViewModel (
 
 class PreCardViewModel(
     private val packageName: String,
-    private val rep: AppsRepository
+    private val rep: AppsListRepository
 ) : ViewModel() {
 
     private val _preCardState = MutableStateFlow<PreCardState>(PreCardState.Initial)
     val preCardState: StateFlow<PreCardState> = _preCardState.asStateFlow()
 
     init {
-        println("=== PreCardViewModel создан для $packageName ===")
-        println("Текущее состояние: ${_preCardState.value}")
         if (_preCardState.value is PreCardState.Initial || _preCardState.value is PreCardState.Error) {
-            println("Загружаем данные для $packageName")
             loadPreCard()
-        } else {
-            println("Данные уже есть, не загружаем")
         }
     }
 
     private fun loadPreCard() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
 
             val currentState = _preCardState.value
             if (currentState is PreCardState.Loading || currentState is PreCardState.Success) {
@@ -125,46 +111,4 @@ class PreCardViewModel(
     }
 
     fun retry() = loadPreCard()
-}
-
-class FullCardViewModel (
-    private val packageName: String,
-    private val rep : AppsRepository
-) : ViewModel () {
-
-    private val _fullCardState = MutableStateFlow<FullCardState>(FullCardState.Initial)
-    val fullCardState: StateFlow<FullCardState> = _fullCardState.asStateFlow()
-
-    init {
-        if (_fullCardState.value is FullCardState.Initial || _fullCardState.value is FullCardState.Error) {
-            loadFullCard()
-        }
-    }
-
-    private fun loadFullCard() {
-        viewModelScope.launch {
-
-            val currentState = _fullCardState.value
-            if (currentState is FullCardState.Loading || currentState is FullCardState.Success) {
-                return@launch
-            }
-
-            _fullCardState.value = FullCardState.Loading
-            runCatching {
-
-                val fullCard = rep.getFullAppInfo(packageName)
-
-                if (fullCard != null) {
-                    _fullCardState.value = FullCardState.Success(fullCard)
-                }
-                else {
-                    _fullCardState.value = FullCardState.Error(true)
-                }
-            }.onFailure { e ->
-                _fullCardState.value = FullCardState.Error(true)
-            }
-        }
-    }
-
-    fun retry() = loadFullCard()
 }

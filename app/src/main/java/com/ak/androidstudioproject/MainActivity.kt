@@ -11,16 +11,44 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.ak.androidstudioproject.AppDetailes.Data.ApiService
+import com.ak.androidstudioproject.AppDetailes.Data.AppDetailsMapper
+import com.ak.androidstudioproject.AppDetailes.Data.AppDetailsRepositoryImpl
 import com.ak.androidstudioproject.AppDetailes.Presentation.UI.AppDetailsScreen
+import com.ak.androidstudioproject.AppList.Data.AppsListRepositoryImpl
+import com.ak.androidstudioproject.AppList.Data.ListApiService
+import com.ak.androidstudioproject.AppList.Data.ListMapper
+import com.ak.androidstudioproject.AppList.Data.PreCardApiService
+import com.ak.androidstudioproject.AppList.Data.PreCardMapper
 import com.ak.androidstudioproject.AppList.Presentation.UI.ListOfApps
-import com.ak.androidstudioproject.model.ApiService
-import com.ak.androidstudioproject.model.AppsRepositoryImpl
+
+object NavigationConsts {
+
+    private const val LIST_SCREEN = "ListOfApps"
+    private const val DETAIL_SCREEN = "detailScreen"
+
+    const val LIST = LIST_SCREEN
+    const val DETAIL = "$DETAIL_SCREEN/{appName}"
+
+    fun navToDetail(appName: String): String {
+        return "$DETAIL_SCREEN/$appName"
+    }
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val rep = AppsRepositoryImpl(ApiService())
+        val ListRep = AppsListRepositoryImpl(
+            PreCardApiService(),
+            ListApiService(),
+            ListMapper(),
+            PreCardMapper()
+        )
+        val FullCardRep = AppDetailsRepositoryImpl(
+            ApiService(),
+            AppDetailsMapper()
+        )
 
         setContent {
 
@@ -28,22 +56,22 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = navController,
-                    startDestination = "ListOfApps"
+                    startDestination = NavigationConsts.LIST
                 ) {
 
-                    composable("ListOfApps") {
+                    composable(NavigationConsts.LIST) {
                         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                             ListOfApps(
-                                rep,
+                                ListRep,
                                 onNavigateToDetail = { appName ->
-                                    navController.navigate("detailScreen/$appName")
+                                    navController.navigate(NavigationConsts.navToDetail("$appName"))
                                 }
                             )
                         }
                     }
 
                     composable(
-                        "detailScreen/{appName}",
+                        NavigationConsts.DETAIL,
                         arguments = listOf(navArgument("appName") {
                             type = NavType.StringType
                         }
@@ -53,7 +81,7 @@ class MainActivity : ComponentActivity() {
                         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                             AppDetailsScreen(
                                 packageName = appName,
-                                rep,
+                                FullCardRep,
                                 onBackClick = {
                                     navController.popBackStack()
                                 }

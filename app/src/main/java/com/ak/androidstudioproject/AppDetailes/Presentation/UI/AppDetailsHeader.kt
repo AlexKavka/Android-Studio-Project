@@ -21,7 +21,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.ak.androidstudioproject.model.FullCardInfo
+import com.ak.androidstudioproject.AppDetailes.Domain.FullCardInfo
+import com.ak.androidstudioproject.CommonUtils.*
+
 
 @Composable
 fun AppDetailsHeader(
@@ -81,7 +83,3 @@ fun AppDetailsHeader(
     }
 }
 
-@Composable
-private fun getCategoryText(category: List<String>): String  {
-    return category.joinToString(" ")
-}

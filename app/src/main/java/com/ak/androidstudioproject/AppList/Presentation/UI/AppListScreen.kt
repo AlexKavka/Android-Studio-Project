@@ -45,13 +45,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
-import com.ak.androidstudioproject.R
-import com.ak.androidstudioproject.viewModel.ListState
-import com.ak.androidstudioproject.viewModel.ListViewModel
-import com.ak.androidstudioproject.viewModel.PreCardState
-import com.ak.androidstudioproject.viewModel.PreCardViewModel
-import com.ak.androidstudioproject.model.*
 import kotlinx.coroutines.launch
+import com.ak.androidstudioproject.AppList.Presentation.ViewModel.*
+import com.ak.androidstudioproject.AppList.Domain.*
+import com.ak.androidstudioproject.CommonUtils.getCategoryText
+import com.ak.androidstudioproject.R
 
 @Composable
 fun preCardLoading () {
@@ -137,7 +135,8 @@ fun preCardSuccess (
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Text(state.categories.joinToString(" "),
+            Text(
+                getCategoryText( state.categories),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal,
                 fontFamily = FontFamily.SansSerif,
@@ -178,7 +177,7 @@ fun preCardError () {
 @Composable
 fun AppPreCard (
     packageName : String,
-    rep: AppsRepository,
+    rep: AppsListRepository,
     onClick: (String?) -> Unit
 ) {
     val viewModel : PreCardViewModel = viewModel(packageName) {
@@ -218,7 +217,7 @@ fun listLoading () {
 @Composable
 fun listSucces (
     state: ListState.Success,
-    rep: AppsRepository,
+    rep: AppsListRepository,
     onRetry : () -> Unit,
     onNavigateToDetail: (String?) -> Unit
 ) {
@@ -335,7 +334,7 @@ fun listError() {
 
 @Composable
 fun ListOfApps(
-    rep: AppsRepository,
+    rep: AppsListRepository,
     onNavigateToDetail: (String?) -> Unit
 ) {
     val viewModel : ListViewModel = viewModel {

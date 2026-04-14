@@ -13,14 +13,16 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ak.androidstudioproject.AppDetailes.Data.ApiService
 import com.ak.androidstudioproject.AppDetailes.Data.AppDetailsMapper
-import com.ak.androidstudioproject.AppDetailes.Data.AppDetailsRepositoryImpl
+import com.ak.androidstudioproject.AppDetailes.Domain.AppDetailsRepository
 import com.ak.androidstudioproject.AppDetailes.Presentation.UI.AppDetailsScreen
-import com.ak.androidstudioproject.AppList.Data.AppsListRepositoryImpl
+import com.ak.androidstudioproject.AppList.Domain.AppsListRepository
 import com.ak.androidstudioproject.AppList.Data.ListApiService
 import com.ak.androidstudioproject.AppList.Data.ListMapper
 import com.ak.androidstudioproject.AppList.Data.PreCardApiService
 import com.ak.androidstudioproject.AppList.Data.PreCardMapper
 import com.ak.androidstudioproject.AppList.Presentation.UI.ListOfApps
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 object NavigationConsts {
 
@@ -35,20 +37,17 @@ object NavigationConsts {
     }
 }
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var ListRep: AppsListRepository
+
+    @Inject
+    lateinit var FullCardRep: AppDetailsRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val ListRep = AppsListRepositoryImpl(
-            PreCardApiService(),
-            ListApiService(),
-            ListMapper(),
-            PreCardMapper()
-        )
-        val FullCardRep = AppDetailsRepositoryImpl(
-            ApiService(),
-            AppDetailsMapper()
-        )
 
         setContent {
 
@@ -62,7 +61,6 @@ class MainActivity : ComponentActivity() {
                     composable(NavigationConsts.LIST) {
                         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                             ListOfApps(
-                                ListRep,
                                 onNavigateToDetail = { appName ->
                                     navController.navigate(NavigationConsts.navToDetail("$appName"))
                                 }
@@ -81,7 +79,6 @@ class MainActivity : ComponentActivity() {
                         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                             AppDetailsScreen(
                                 packageName = appName,
-                                FullCardRep,
                                 onBackClick = {
                                     navController.popBackStack()
                                 }

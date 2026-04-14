@@ -3,11 +3,17 @@ package com.ak.androidstudioproject.AppList.Presentation.ViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ak.androidstudioproject.AppList.Domain.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed interface PreCardState {
     data object Initial : PreCardState
@@ -31,12 +37,16 @@ sealed interface ListState {
     ) : ListState
 }
 
-class ListViewModel (
+@HiltViewModel
+class ListViewModel @Inject constructor(
     private val rep : AppsListRepository
 ) : ViewModel () {
 
     private val _listState = MutableStateFlow<ListState>(ListState.Initial)
     val listState : StateFlow<ListState> = _listState.asStateFlow()
+
+    private val _refreshTrigger = MutableSharedFlow<Unit>()
+    val refreshTrigger: SharedFlow<Unit> = _refreshTrigger.asSharedFlow()
 
     private val _cardsStates = MutableStateFlow<Map<String, PreCardState>>(emptyMap())
     private val cardState: StateFlow<Map<String, PreCardState>> = _cardsStates.asStateFlow()
@@ -70,20 +80,57 @@ class ListViewModel (
         }
     }
 
-    fun retry() = loadAppsUrls()
+    fun retry() {
+        viewModelScope.launch {
+            _refreshTrigger.emit(Unit)
+            loadAppsUrls()
+        }
+    }
 }
 
-class PreCardViewModel(
-    private val packageName: String,
+@HiltViewModel
+class PreCardViewModel @Inject constructor(
     private val rep: AppsListRepository
 ) : ViewModel() {
 
     private val _preCardState = MutableStateFlow<PreCardState>(PreCardState.Initial)
     val preCardState: StateFlow<PreCardState> = _preCardState.asStateFlow()
+    private var currentPackageName: String = ""
 
-    init {
-        if (_preCardState.value is PreCardState.Initial || _preCardState.value is PreCardState.Error) {
-            loadPreCard()
+    fun observeRefreshTrigger(refreshTrigger: Flow<Unit>) {
+        viewModelScope.launch {
+            refreshTrigger.collect {
+                if (currentPackageName.isNotEmpty()) {
+                    forceLoadPreCard()
+                }
+            }
+        }
+    }
+
+    fun init(packageName: String) {
+        if (currentPackageName == packageName &&
+            (_preCardState.value is PreCardState.Loading ||
+                    _preCardState.value is PreCardState.Success)) {
+            return
+        }
+
+        currentPackageName = packageName
+        loadPreCard()
+    }
+
+    private fun forceLoadPreCard() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _preCardState.value = PreCardState.Loading
+            runCatching {
+                val preCard = rep.getAppPreCard(currentPackageName)
+                if (preCard != null) {
+                    _preCardState.value = PreCardState.Success(preCard)
+                } else {
+                    _preCardState.value = PreCardState.Error(true)
+                }
+            }.onFailure {
+                _preCardState.value = PreCardState.Error(true)
+            }
         }
     }
 
@@ -97,7 +144,7 @@ class PreCardViewModel(
 
             _preCardState.value = PreCardState.Loading
             runCatching {
-                val preCard = rep.getAppPreCard(packageName)
+                val preCard = rep.getAppPreCard(currentPackageName)
                 if (preCard != null) {
                     _preCardState.value = PreCardState.Success(preCard)
                 }

@@ -32,4 +32,8 @@ class AppsListRepositoryImpl(
 
         return responseDomain
     }
+
+    override fun clearCache() {
+        preCardCache.clear()
+    }
 }

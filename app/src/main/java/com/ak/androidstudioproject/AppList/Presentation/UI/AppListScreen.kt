@@ -26,6 +26,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -50,6 +52,7 @@ import com.ak.androidstudioproject.AppList.Presentation.ViewModel.*
 import com.ak.androidstudioproject.AppList.Domain.*
 import com.ak.androidstudioproject.CommonUtils.getCategoryText
 import com.ak.androidstudioproject.R
+import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun preCardLoading () {
@@ -177,14 +180,22 @@ fun preCardError () {
 @Composable
 fun AppPreCard (
     packageName : String,
-    rep: AppsListRepository,
-    onClick: (String?) -> Unit
+    onClick: (String?) -> Unit,
+    refreshTrigger: Flow<Unit>
 ) {
-    val viewModel : PreCardViewModel = viewModel(packageName) {
-        PreCardViewModel(packageName, rep)
-    }
+    val viewModel : PreCardViewModel = hiltViewModel(
+        key = "Unit$packageName"
+    )
 
     val state by viewModel.preCardState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.observeRefreshTrigger(refreshTrigger)
+    }
+
+    LaunchedEffect(packageName) {
+        viewModel.init(packageName)
+    }
 
     when (state) {
         is PreCardState.Initial -> {
@@ -217,9 +228,9 @@ fun listLoading () {
 @Composable
 fun listSucces (
     state: ListState.Success,
-    rep: AppsListRepository,
     onRetry : () -> Unit,
-    onNavigateToDetail: (String?) -> Unit
+    onNavigateToDetail: (String?) -> Unit,
+    refreshTrigger: Flow<Unit>
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -271,10 +282,10 @@ fun listSucces (
             items(state.list.urls.size) { index ->
                 AppPreCard(
                     packageName = state.list.urls[index],
-                    rep = rep,
                     onClick = { appName ->
                         onNavigateToDetail(appName ?: "")
-                    }
+                    },
+                    refreshTrigger = refreshTrigger
                 )
                 Spacer(modifier = Modifier.height(5.dp))
                 HorizontalDivider(
@@ -334,14 +345,11 @@ fun listError() {
 
 @Composable
 fun ListOfApps(
-    rep: AppsListRepository,
     onNavigateToDetail: (String?) -> Unit
 ) {
-    val viewModel : ListViewModel = viewModel {
-        ListViewModel(rep)
-    }
-
+    val viewModel : ListViewModel = hiltViewModel()
     val state by viewModel.listState.collectAsState()
+    val refreshTrigger = viewModel.refreshTrigger
 
     when (state) {
         is ListState.Initial -> {
@@ -351,26 +359,15 @@ fun ListOfApps(
             listLoading()
         }
         is ListState.Success -> {
-            listSucces(state as ListState.Success, rep, onRetry = { viewModel.retry() }, onNavigateToDetail = onNavigateToDetail)
+            listSucces(
+                state as ListState.Success,
+                onRetry = { viewModel.retry() },
+                onNavigateToDetail = onNavigateToDetail,
+                refreshTrigger = refreshTrigger
+            )
         }
         is ListState.Error -> {
             listError()
         }
     }
-}
-
-@Composable
-inline fun <reified VM : ViewModel> viewModel(
-    key: String? = null,
-    crossinline factory: () -> VM
-): VM {
-    val factoryWrapper = remember(key) {
-        object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return factory() as T
-            }
-        }
-    }
-    return viewModel(key = key, factory = factoryWrapper)
 }

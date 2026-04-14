@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ak.androidstudioproject.AppDetailes.Domain.*
 import com.ak.androidstudioproject.AppDetailes.Presentation.ViewModel.*
 
@@ -66,7 +68,6 @@ fun fullCardSucces(
     var descriptionCollapsed by remember { mutableStateOf(false) }
 
     Column(modifier) {
-        // Верхняя панель (тулбар)
         Toolbar(
             onBackClick = onBackClick,
             onShareClick = { onShareClick(state.fullCard.url) }
@@ -74,7 +75,6 @@ fun fullCardSucces(
 
         Spacer(Modifier.height(8.dp))
 
-        // Шапка с иконкой, названием, рейтингом
         AppDetailsHeader(
             app = app,
             modifier = Modifier.padding(horizontal = 16.dp),
@@ -82,7 +82,6 @@ fun fullCardSucces(
 
         Spacer(Modifier.height(16.dp))
 
-        // Кнопка установки
         InstallButton(
             onClick = {
                 Toast.makeText(context, underDevelopmentText, Toast.LENGTH_SHORT).show()
@@ -94,7 +93,6 @@ fun fullCardSucces(
 
         Spacer(Modifier.height(12.dp))
 
-        // Скриншоты
         ScreenshotsList(
             screenshotUrlList = app.screenshots,
             contentPadding = PaddingValues(horizontal = 16.dp),
@@ -102,7 +100,6 @@ fun fullCardSucces(
 
         Spacer(Modifier.height(12.dp))
 
-        // Описание
         AppDescription(
             description = app.shortDescription,
             collapsed = descriptionCollapsed,
@@ -116,7 +113,6 @@ fun fullCardSucces(
 
         Spacer(Modifier.height(12.dp))
 
-        // Разделитель
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 16.dp),
             color = MaterialTheme.colorScheme.outlineVariant,
@@ -124,7 +120,6 @@ fun fullCardSucces(
 
         Spacer(Modifier.height(12.dp))
 
-        // Информация о разработчике
         Developer(
             name = app.developer,
             onClick = { onDeveloperClick(app.developer) },
@@ -139,7 +134,8 @@ fun fullCardSucces(
 fun fullCardError(
     modifier: Modifier,
     onBackClick: () -> Unit,
-    onShareClick: (String) -> Unit
+    onShareClick: (String) -> Unit,
+    onRetry: () -> Unit
 ) {
     val context = LocalContext.current
 
@@ -173,10 +169,7 @@ fun fullCardError(
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = {
-                Toast.makeText(context, "Повторная загрузка...", Toast.LENGTH_SHORT).show()
-                // потом обрабатаю
-            },
+            onClick = onRetry,
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Blue
             )
@@ -197,22 +190,18 @@ fun fullCardError(
 @Composable
 fun AppDetailsScreen(
     packageName : String,
-    rep : AppDetailsRepository,
     modifier: Modifier = Modifier,
     onBackClick : () -> Unit = {},
     onShareClick : (String) -> Unit = {},
     onDeveloperClick : (String) -> Unit = {}
 ) {
-    val viewModel = remember(packageName) {
-        FullCardViewModel(packageName, rep)
-    }
+    val viewModel : FullCardViewModel = hiltViewModel()
 
     val state by viewModel.fullCardState.collectAsState()
 
-    val context = LocalContext.current
-    val underDevelopmentText =
-        "R.string.under_developement" //stringResource(R.string.under_developement)
-
+    LaunchedEffect(packageName) {
+        viewModel.init(packageName)
+    }
 
     when (state) {
         is FullCardState.Initial -> {
@@ -228,7 +217,7 @@ fun AppDetailsScreen(
         }
 
         is FullCardState.Error -> {
-            fullCardError(modifier, onBackClick, onShareClick)
+            fullCardError(modifier, onBackClick, onShareClick, onRetry = { viewModel.retry() })
 
         }
     }

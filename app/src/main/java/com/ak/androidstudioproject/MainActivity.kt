@@ -11,14 +11,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.ak.androidstudioproject.AppDetailes.Data.ApiService
 import com.ak.androidstudioproject.AppDetailes.Data.AppDetailsMapper
 import com.ak.androidstudioproject.AppDetailes.Domain.AppDetailsRepository
 import com.ak.androidstudioproject.AppDetailes.Presentation.UI.AppDetailsScreen
 import com.ak.androidstudioproject.AppList.Domain.AppsListRepository
-import com.ak.androidstudioproject.AppList.Data.ListApiService
 import com.ak.androidstudioproject.AppList.Data.ListMapper
-import com.ak.androidstudioproject.AppList.Data.PreCardApiService
 import com.ak.androidstudioproject.AppList.Data.PreCardMapper
 import com.ak.androidstudioproject.AppList.Presentation.UI.ListOfApps
 import dagger.hilt.android.AndroidEntryPoint

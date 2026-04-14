@@ -1,25 +1,40 @@
 package com.ak.androidstudioproject.AppDetailes.Data
 
+import com.ak.androidstudioproject.AppDetailes.Data.Local.FullCardDao
+import com.ak.androidstudioproject.AppDetailes.Data.Remote.FullCardDTO
+import com.ak.androidstudioproject.AppDetailes.Data.Remote.RetrofitApiService
 import com.ak.androidstudioproject.AppDetailes.Domain.AppDetailsRepository
 import com.ak.androidstudioproject.AppDetailes.Domain.FullCardInfo
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AppDetailsRepositoryImpl(
-    private val apiService: ApiService,
+@Singleton
+class AppDetailsRepositoryImpl @Inject constructor(
+    private val apiService: RetrofitApiService,
+    private val dao: FullCardDao,
     private val mapper: AppDetailsMapper
 ) : AppDetailsRepository {
 
-    private val fullCardCache =   mutableMapOf<String, FullCardInfo>()
-
     override suspend fun getFullAppInfo(packageName: String): FullCardInfo? {
 
-        fullCardCache[packageName]?.let {
-            return it
+        val cachedEntity = dao.getFullCard(packageName)
+
+        if (cachedEntity != null) {
+            return mapper.toDomain(cachedEntity)
         }
 
-        val responseDTO : FullCardDTO? = apiService.getAppInfo(packageName)
-        val responseDomain : FullCardInfo? = mapper.toDomain(responseDTO)
-        if (responseDomain != null) fullCardCache[packageName] = responseDomain
+        return try {
+            val dto = apiService.getAppInfo(packageName)
+            val domain = mapper.toDomain(dto)
 
-        return responseDomain
+            if (domain != null) {
+                val entity = mapper.toEntity(packageName, dto)
+                dao.insertFullCard(entity)
+            }
+
+            domain
+        } catch (e: Exception) {
+            null
+        }
     }
 }

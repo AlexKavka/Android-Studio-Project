@@ -1,39 +1,62 @@
 package com.ak.androidstudioproject.AppList.Data
 
-import android.util.Log
+import com.ak.androidstudioproject.AppList.Data.Local.PreCardDao
+import com.ak.androidstudioproject.AppList.Data.Remote.AppListDTO
+import com.ak.androidstudioproject.AppList.Data.Remote.ListRetrofitApiService
+import com.ak.androidstudioproject.AppList.Data.Remote.PreCardDTO
+import com.ak.androidstudioproject.AppList.Data.Remote.PreCardRetrofitApiService
 import com.ak.androidstudioproject.AppList.Domain.*
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AppsListRepositoryImpl(
-    private val preCardApiService: PreCardApiService,
-    private val listApiService: ListApiService,
+@Singleton
+class AppsListRepositoryImpl @Inject constructor(
+    private val preCardApiService: PreCardRetrofitApiService,
+    private val listApiService: ListRetrofitApiService,
     private val listMapper: ListMapper,
-    private val preCardMapper: PreCardMapper
+    private val preCardMapper: PreCardMapper,
+    private val preCardDao: PreCardDao
 ) : AppsListRepository {
 
     private val preCardCache =   mutableMapOf<String, PreCardInfo>()
 
     override suspend fun getAppPreCard(packageName: String): PreCardInfo? {
 
-        if (preCardCache[packageName] != null) preCardCache[packageName]?.let {
-            return it
+        val cachedEntity = preCardDao.getPreCard(packageName)
+
+        if (cachedEntity != null) {
+            return preCardMapper.toDomain(cachedEntity)
         }
 
-        val responseDTO : PreCardDTO? = preCardApiService.getAppInfo(packageName)
-        val responseDomain : PreCardInfo? = preCardMapper.toDomain(responseDTO)
-        if (responseDomain != null) preCardCache[packageName] = responseDomain
+        return try {
+            val dto = preCardApiService.getAppInfo(packageName)
+            val domain = preCardMapper.toDomain(dto)
 
-        return responseDomain
+            if (domain != null) {
+                val entity = preCardMapper.toEntity(packageName, dto)
+                preCardDao.insertPreCard(entity)
+            }
+
+            domain
+        } catch (e: Exception) {
+            cachedEntity?.let { return preCardMapper.toDomain(it) }
+            null
+        }
     }
 
     override suspend fun getAppUrls(): AppList? {
 
-        val responseDTO : AppListDTO? = listApiService.getAppList()
-        val responseDomain : AppList? = listMapper.toDomain(responseDTO)
+        return try {
+            val responseDTO : String = listApiService.getAppList(query = "a")
+            val responseDomain = listMapper.toDomain(responseDTO)
 
-        return responseDomain
+            responseDomain
+        } catch (e: Exception) {
+            null
+        }
     }
 
-    override fun clearCache() {
-        preCardCache.clear()
+    override suspend fun clearCache() {
+        preCardDao.clearAll()
     }
 }

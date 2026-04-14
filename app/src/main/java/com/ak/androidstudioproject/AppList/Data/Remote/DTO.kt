@@ -1,12 +1,9 @@
-package com.ak.androidstudioproject.AppList.Data
+package com.ak.androidstudioproject.AppList.Data.Remote
 
-import com.ak.androidstudioproject.AppDetailes.Data.AppBody
 import com.google.gson.annotations.SerializedName
-import kotlinx.serialization.Serializable
 
-@Serializable
 data class AppListDTO(
-    val urls : List<String>
+    val html : String?
 )
 
 data class PreCardDTO(

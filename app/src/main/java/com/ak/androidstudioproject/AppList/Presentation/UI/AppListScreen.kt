@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -53,6 +54,7 @@ import com.ak.androidstudioproject.AppList.Domain.*
 import com.ak.androidstudioproject.CommonUtils.getCategoryText
 import com.ak.androidstudioproject.R
 import kotlinx.coroutines.flow.Flow
+import kotlin.Unit
 
 @Composable
 fun preCardLoading () {
@@ -247,7 +249,6 @@ fun listSucces (
                 modifier = Modifier
                     .height(32.dp)
                     .clickable {
-
                             scope.launch {
                                 val result = snackbarHostState.showSnackbar(
                                     message = "Обновить список?",
@@ -257,7 +258,6 @@ fun listSucces (
                                     onRetry()
                                 }
                             }
-
                         }
 
             )
@@ -306,17 +306,42 @@ fun listSucces (
 }
 
 @Composable
-fun listError() {
+fun listError(
+    onRetry: () -> Unit,
+    refreshTrigger: Flow<Unit>
+) {
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        Toast.makeText(context, "Ошибка загрузки", Toast.LENGTH_SHORT).show()
+    }
 
     Box( modifier = Modifier.fillMaxWidth()
         .background(Color.Blue))
     {
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 56.dp, start = 8.dp, end = 8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth().zIndex(1f).padding(top = 56.dp, start = 8.dp, end = 8.dp)) {
             Icon(
                 painter = painterResource(id = R.drawable.rustore_logo),
                 contentDescription = null,
                 tint = Color.Unspecified,
-                modifier = Modifier.height(32.dp)
+                modifier = Modifier
+                    .height(32.dp)
+                    .clickable {
+
+                    scope.launch {
+                        val result = snackbarHostState.showSnackbar(
+                            message = "Обновить список?",
+                            actionLabel = "Да"
+                        )
+                        if (result == SnackbarResult.ActionPerformed) {
+                            onRetry()
+                        }
+                    }
+
+                }
             )
             Spacer(modifier = Modifier.weight(1f))
             Icon(
@@ -330,6 +355,7 @@ fun listError() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .zIndex(0f)
                 .verticalScroll(rememberScrollState())
                 .padding(top = 110.dp)
                 .clip(RoundedCornerShape(16.dp))
@@ -337,9 +363,15 @@ fun listError() {
             verticalArrangement = Arrangement.spacedBy(5.dp)
 
         ) {
-            val context = LocalContext.current
-            Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show()
+
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
     }
 }
 
@@ -367,7 +399,7 @@ fun ListOfApps(
             )
         }
         is ListState.Error -> {
-            listError()
+            listError(onRetry = { viewModel.retry() }, refreshTrigger = refreshTrigger)
         }
     }
 }

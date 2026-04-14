@@ -1,4 +1,4 @@
-package com.ak.androidstudioproject.AppDetailes.Data
+package com.ak.androidstudioproject.AppDetailes.Data.Remote
 
 import com.google.gson.annotations.SerializedName
 

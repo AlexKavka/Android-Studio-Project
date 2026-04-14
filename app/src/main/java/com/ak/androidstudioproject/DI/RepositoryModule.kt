@@ -1,15 +1,17 @@
 package com.ak.androidstudioproject.DI
 
-import com.ak.androidstudioproject.AppDetailes.Data.ApiService
-import com.ak.androidstudioproject.AppList.Data.ListApiService
-import com.ak.androidstudioproject.AppList.Data.PreCardApiService
 import com.ak.androidstudioproject.AppList.Data.ListMapper
 import com.ak.androidstudioproject.AppList.Data.PreCardMapper
 import com.ak.androidstudioproject.AppDetailes.Data.AppDetailsMapper
 import com.ak.androidstudioproject.AppList.Data.AppsListRepositoryImpl
 import com.ak.androidstudioproject.AppDetailes.Data.AppDetailsRepositoryImpl
+import com.ak.androidstudioproject.AppDetailes.Data.Local.FullCardDao
+import com.ak.androidstudioproject.AppDetailes.Data.Remote.RetrofitApiService
 import com.ak.androidstudioproject.AppList.Domain.AppsListRepository
 import com.ak.androidstudioproject.AppDetailes.Domain.AppDetailsRepository
+import com.ak.androidstudioproject.AppList.Data.Local.PreCardDao
+import com.ak.androidstudioproject.AppList.Data.Remote.ListRetrofitApiService
+import com.ak.androidstudioproject.AppList.Data.Remote.PreCardRetrofitApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,28 +25,32 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideAppsListRepository(
-        preCardApiService: PreCardApiService,
-        listApiService: ListApiService,
+        preCardApiService: PreCardRetrofitApiService,
+        listApiService: ListRetrofitApiService,
         listMapper: ListMapper,
-        preCardMapper: PreCardMapper
+        preCardMapper: PreCardMapper,
+        preCardDao : PreCardDao
     ): AppsListRepository {
         return AppsListRepositoryImpl(
             preCardApiService,
             listApiService,
             listMapper,
-            preCardMapper
+            preCardMapper,
+            preCardDao
         )
     }
 
     @Provides
     @Singleton
     fun provideAppDetailsRepository(
-        appDetailsApiService: ApiService,
-        appDetailsMapper: AppDetailsMapper
+        appDetailsApiService: RetrofitApiService,
+        dao: FullCardDao,
+        mapper: AppDetailsMapper
     ): AppDetailsRepository {
         return AppDetailsRepositoryImpl(
             appDetailsApiService,
-            appDetailsMapper
+            dao,
+            mapper
         )
     }
 }

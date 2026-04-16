@@ -1,10 +1,12 @@
 package com.ak.androidstudioproject.AppList.Presentation.ViewModel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ak.androidstudioproject.AppList.Domain.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,12 +53,6 @@ class ListViewModel @Inject constructor(
     private val _cardsStates = MutableStateFlow<Map<String, PreCardState>>(emptyMap())
     private val cardState: StateFlow<Map<String, PreCardState>> = _cardsStates.asStateFlow()
 
-    init {
-        if (_listState.value is ListState.Initial || _listState.value is ListState.Error) {
-            loadAppsUrls()
-        }
-    }
-
     private fun loadAppsUrls() {
         viewModelScope.launch(Dispatchers.IO) {
 
@@ -68,6 +64,7 @@ class ListViewModel @Inject constructor(
             _listState.value = ListState.Loading
             runCatching {
                 val appUrls = rep.getAppUrls()
+
                 if (appUrls != null && appUrls.urls.isNotEmpty()) {
                     _listState.value = ListState.Success(appUrls)
                 }
@@ -76,6 +73,15 @@ class ListViewModel @Inject constructor(
                 }
             }.onFailure {
                 _listState.value = ListState.Error(true)
+            }
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            delay(500L)
+            if (_listState.value is ListState.Initial || _listState.value is ListState.Error) {
+                loadAppsUrls()
             }
         }
     }

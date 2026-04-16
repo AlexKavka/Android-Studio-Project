@@ -53,6 +53,7 @@ import com.ak.androidstudioproject.AppList.Presentation.ViewModel.*
 import com.ak.androidstudioproject.AppList.Domain.*
 import com.ak.androidstudioproject.CommonUtils.getCategoryText
 import com.ak.androidstudioproject.R
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlin.Unit
 
@@ -154,6 +155,33 @@ fun preCardSuccess (
 }
 
 @Composable
+fun preCardInit () {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(top = 10.dp, start = 10.dp, end = 10.dp)
+            .fillMaxWidth()
+            .background(Color.White)
+    )
+    {
+        Box(modifier = Modifier.background(Color.LightGray).size(90.dp).clip(RoundedCornerShape(16.dp)))
+        Spacer(modifier = Modifier.width(10.dp))
+        Column(
+            modifier = Modifier.padding(start = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                "",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.SansSerif,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+@Composable
 fun preCardError () {
     Row (
         verticalAlignment = Alignment.CenterVertically,
@@ -169,8 +197,7 @@ fun preCardError () {
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text("Ошибка",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
                 fontFamily = FontFamily.SansSerif,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -201,7 +228,7 @@ fun AppPreCard (
 
     when (state) {
         is PreCardState.Initial -> {
-
+            preCardInit()
         }
         is PreCardState.Loading -> {
             preCardLoading()
@@ -216,14 +243,59 @@ fun AppPreCard (
 }
 
 @Composable
+fun listInit () {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Blue),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(id = R.drawable.rustore_logo),
+            contentDescription = null,
+            tint = Color.Unspecified,
+            modifier = Modifier
+                .height(72.dp)
+                .fillMaxSize()
+        )
+    }
+}
+@Composable
 fun listLoading () {
-    Box( modifier = Modifier
+    Box(
+        modifier = Modifier
         .fillMaxWidth()
         .background(Color.Blue),
         contentAlignment = Alignment.Center
-        )
+    )
     {
-        CircularProgressIndicator()
+        Row(modifier = Modifier.fillMaxWidth().padding(top = 56.dp, start = 8.dp, end = 8.dp)) {
+            Icon(
+                painter = painterResource(id = R.drawable.rustore_logo),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier
+                    .height(32.dp)
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Icon(
+                painter = painterResource(id = R.drawable.someicon),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier.height(32.dp)
+            )
+        }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 110.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.Blue)
+            }
+
     }
 }
 
@@ -385,7 +457,7 @@ fun ListOfApps(
 
     when (state) {
         is ListState.Initial -> {
-
+            listInit()
         }
         is ListState.Loading -> {
             listLoading()

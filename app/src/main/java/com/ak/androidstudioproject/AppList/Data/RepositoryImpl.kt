@@ -46,14 +46,25 @@ class AppsListRepositoryImpl @Inject constructor(
 
     override suspend fun getAppUrls(): AppList? {
 
-        return try {
+        val cachedPackageNames = preCardDao.getAllPackageNames()
+
+        var apiPackageNames = emptyList<String>()
+
+        try {
             val responseDTO : String = listApiService.getAppList(query = "a")
             val responseDomain = listMapper.toDomain(responseDTO)
 
-            responseDomain
-        } catch (e: Exception) {
-            null
+            apiPackageNames = responseDomain?.urls ?: emptyList()
+        } catch (e: Exception) { }
+
+        val mergedUrls = if (apiPackageNames.isNotEmpty()) {
+            val uniqueFromCache = cachedPackageNames.filterNot { apiPackageNames.contains(it) }
+            apiPackageNames + uniqueFromCache
+        } else {
+            cachedPackageNames
         }
+
+        return AppList(urls = mergedUrls)
     }
 
     override suspend fun clearCache() {

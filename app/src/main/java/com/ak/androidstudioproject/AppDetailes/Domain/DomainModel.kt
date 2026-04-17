@@ -9,5 +9,6 @@ data class FullCardInfo (
     val screenshots : List<String>,
     val ageRating : String,
     val developer : String,
-    val appSize: Long
+    val appSize: Long,
+    val isInWishlist: Boolean = false
 )

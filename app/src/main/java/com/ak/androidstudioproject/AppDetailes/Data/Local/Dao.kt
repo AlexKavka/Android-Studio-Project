@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface FullCardDao {
 
     @Query("SELECT * FROM full_card_cache WHERE packageName = :packageName")
-    suspend fun getFullCard(packageName: String): FullCardEntity?
+    suspend fun getFullCard(packageName: String): FullCardEntity
 
     @Query("SELECT * FROM full_card_cache WHERE packageName = :packageName")
     fun getFullCardFlow(packageName: String): Flow<FullCardEntity?>
@@ -20,6 +20,12 @@ interface FullCardDao {
 
     @Query("DELETE FROM full_card_cache WHERE packageName = :packageName")
     suspend fun deleteFullCard(packageName: String)
+
+    @Query("UPDATE full_card_cache SET isInWishList = NOT isInWishList WHERE packageName = :packageName")
+    suspend fun updateWishlistStatus(packageName: String)
+
+    @Query("SELECT isInWishlist FROM full_card_cache WHERE packageName = :packageName")
+    suspend fun getWishlistStatus(packageName: String): Boolean
 
     @Query("DELETE FROM full_card_cache")
     suspend fun clearAll()

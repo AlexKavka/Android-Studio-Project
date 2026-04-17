@@ -4,19 +4,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.ak.androidstudioproject.AppDetailes.Data.AppDetailsMapper
 import com.ak.androidstudioproject.AppDetailes.Domain.AppDetailsRepository
 import com.ak.androidstudioproject.AppDetailes.Presentation.UI.AppDetailsScreen
 import com.ak.androidstudioproject.AppList.Domain.AppsListRepository
-import com.ak.androidstudioproject.AppList.Data.ListMapper
-import com.ak.androidstudioproject.AppList.Data.PreCardMapper
 import com.ak.androidstudioproject.AppList.Presentation.UI.ListOfApps
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -45,6 +44,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
 
@@ -75,6 +76,7 @@ class MainActivity : ComponentActivity() {
                         val appName = backStackEntry.arguments?.getString("appName") ?: ""
                         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                             AppDetailsScreen(
+                                modifier = Modifier.padding(innerPadding),
                                 packageName = appName,
                                 onBackClick = {
                                     navController.popBackStack()

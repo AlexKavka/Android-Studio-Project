@@ -24,6 +24,7 @@ import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,13 +33,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ak.androidstudioproject.AppDetailes.Domain.*
 import com.ak.androidstudioproject.AppDetailes.Presentation.ViewModel.*
 
@@ -60,17 +66,20 @@ fun fullCardSucces(
     modifier: Modifier,
     onBackClick: () -> Unit,
     onShareClick: (String) -> Unit,
-    onDeveloperClick: (String) -> Unit
+    onDeveloperClick: (String) -> Unit,
+    onWishClick: (String) -> Unit
 ) {
     val app = state.fullCard
     val context = LocalContext.current
-    val underDevelopmentText = "R.string.under_developement" //stringResource(R.string.under_developement)
+    val underDevelopmentText = "R.string.under_developement"
     var descriptionCollapsed by remember { mutableStateOf(false) }
 
     Column(modifier) {
         Toolbar(
+            state.fullCard.isInWishlist,
             onBackClick = onBackClick,
-            onShareClick = { onShareClick(state.fullCard.url) }
+            onShareClick = { onShareClick(state.fullCard.url) },
+            onWishClick = { onWishClick(state.fullCard.url) }
         )
 
         Spacer(Modifier.height(8.dp))
@@ -142,8 +151,10 @@ fun fullCardError(
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
 
         Toolbar(
+            false,
             onBackClick = onBackClick,
-            onShareClick = { onShareClick("А куда?") }
+            onShareClick = { onShareClick("А куда?") },
+            onWishClick = {}
         )
 
         Spacer(Modifier.height(80.dp))
@@ -199,6 +210,22 @@ fun AppDetailsScreen(
 
     val state by viewModel.fullCardState.collectAsState()
 
+    val view = LocalView.current
+    val window = (view.context as androidx.activity.ComponentActivity).window
+    val backgroundColor = MaterialTheme.colorScheme.background
+
+    SideEffect {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = backgroundColor.toArgb()
+        window.navigationBarColor = backgroundColor.toArgb()
+
+        val controller = WindowInsetsControllerCompat(window, view)
+
+        controller.isAppearanceLightStatusBars = true
+        controller.isAppearanceLightNavigationBars = true
+    }
+
+
     LaunchedEffect(packageName) {
         viewModel.init(packageName)
     }
@@ -213,7 +240,7 @@ fun AppDetailsScreen(
         }
 
         is FullCardState.Success -> {
-            fullCardSucces(state as FullCardState.Success, modifier, onBackClick, onShareClick, onDeveloperClick)
+            fullCardSucces(state as FullCardState.Success, modifier, onBackClick, onShareClick, onDeveloperClick, onWishClick = {viewModel.toggleWishlist()})
         }
 
         is FullCardState.Error -> {

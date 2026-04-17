@@ -1,9 +1,7 @@
 package com.ak.androidstudioproject.AppList.Data
 
 import com.ak.androidstudioproject.AppList.Data.Local.PreCardDao
-import com.ak.androidstudioproject.AppList.Data.Remote.AppListDTO
 import com.ak.androidstudioproject.AppList.Data.Remote.ListRetrofitApiService
-import com.ak.androidstudioproject.AppList.Data.Remote.PreCardDTO
 import com.ak.androidstudioproject.AppList.Data.Remote.PreCardRetrofitApiService
 import com.ak.androidstudioproject.AppList.Domain.*
 import javax.inject.Inject
@@ -17,8 +15,6 @@ class AppsListRepositoryImpl @Inject constructor(
     private val preCardMapper: PreCardMapper,
     private val preCardDao: PreCardDao
 ) : AppsListRepository {
-
-    private val preCardCache =   mutableMapOf<String, PreCardInfo>()
 
     override suspend fun getAppPreCard(packageName: String): PreCardInfo? {
 

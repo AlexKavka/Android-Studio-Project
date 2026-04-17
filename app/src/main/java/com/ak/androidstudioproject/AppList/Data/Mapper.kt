@@ -1,8 +1,6 @@
 package com.ak.androidstudioproject.AppList.Data
 
-import android.util.Log
 import com.ak.androidstudioproject.AppList.Data.Local.PreCardEntity
-import com.ak.androidstudioproject.AppList.Data.Remote.AppListDTO
 import com.ak.androidstudioproject.AppList.Data.Remote.PreCardDTO
 import com.ak.androidstudioproject.AppList.Domain.AppList
 import com.ak.androidstudioproject.AppList.Domain.PreCardInfo
@@ -12,7 +10,6 @@ import javax.inject.Singleton
 
 @Singleton
 class PreCardMapper @Inject constructor() {
-    //private val gson = Gson()
 
     fun toDomain(dto: PreCardDTO?): PreCardInfo? {
         return dto?.let { response ->

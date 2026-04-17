@@ -1,14 +1,18 @@
 package com.ak.androidstudioproject.AppDetailes.Presentation.ViewModel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ak.androidstudioproject.AppDetailes.Domain.AppDetailsRepository
 import com.ak.androidstudioproject.AppDetailes.Domain.FullCardInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,6 +35,7 @@ class FullCardViewModel @Inject constructor(
     private val _fullCardState = MutableStateFlow<FullCardState>(FullCardState.Initial)
     val fullCardState: StateFlow<FullCardState> = _fullCardState.asStateFlow()
     private var currentPackageName: String = ""
+    private var observeJob: Job? = null
 
     fun init(packageName: String) {
         if (currentPackageName == packageName &&
@@ -39,7 +44,9 @@ class FullCardViewModel @Inject constructor(
         }
 
         currentPackageName = packageName
+        observeJob?.cancel()
         loadFullCard()
+        observeAppDetails()
     }
 
     private fun forceLoadFullCard() {
@@ -83,6 +90,35 @@ class FullCardViewModel @Inject constructor(
             }.onFailure { e ->
                 _fullCardState.value = FullCardState.Error(true)
             }
+        }
+    }
+
+    private fun observeAppDetails() {
+        if (currentPackageName.isEmpty()) return
+
+        observeJob = viewModelScope.launch {
+            rep.observeAppDetails(currentPackageName)
+                .onStart {
+                    if (_fullCardState.value is FullCardState.Initial) {
+                        _fullCardState.value = FullCardState.Loading
+                    }
+                }
+                .catch { error ->
+                    Log.e("FullCardVM", "Error in observeAppDetails", error)
+                    _fullCardState.value = FullCardState.Error(true)
+                }
+                .collect { fullCard ->
+
+                    if (fullCard.url.isNotEmpty() && fullCard.appName.isNotEmpty()) {
+                        _fullCardState.value = FullCardState.Success(fullCard)
+                    } else if (_fullCardState.value is FullCardState.Loading) {}
+                }
+        }
+    }
+
+    fun toggleWishlist() {
+        viewModelScope.launch(Dispatchers.IO) {
+            rep.toggleWishlist(currentPackageName)
         }
     }
 

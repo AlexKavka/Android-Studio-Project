@@ -27,6 +27,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -36,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -43,17 +45,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import com.ak.androidstudioproject.AppList.Presentation.ViewModel.*
-import com.ak.androidstudioproject.AppList.Domain.*
 import com.ak.androidstudioproject.CommonUtils.getCategoryText
 import com.ak.androidstudioproject.R
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlin.Unit
 
@@ -454,6 +453,20 @@ fun ListOfApps(
     val viewModel : ListViewModel = hiltViewModel()
     val state by viewModel.listState.collectAsState()
     val refreshTrigger = viewModel.refreshTrigger
+
+    val view = LocalView.current
+    val window = (view.context as androidx.activity.ComponentActivity).window
+
+    SideEffect {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        WindowInsetsControllerCompat(window, view).apply {
+            window.statusBarColor = android.graphics.Color.BLUE
+            window.navigationBarColor = android.graphics.Color.WHITE
+
+            isAppearanceLightStatusBars = false
+        }
+    }
 
     when (state) {
         is ListState.Initial -> {

@@ -8,7 +8,6 @@ import com.google.gson.Gson
 import kotlin.String
 
 class AppDetailsMapper {
-    private val gson = Gson()
 
     fun toDomain(dto: FullCardDTO?): FullCardInfo? {
         return dto?.let { response ->
@@ -29,17 +28,18 @@ class AppDetailsMapper {
         }
     }
 
-    fun toDomain(entity: FullCardEntity): FullCardInfo {
+    fun toDomain(entity: FullCardEntity?): FullCardInfo {
         return FullCardInfo(
-            url = entity.packageName,
-            appName = entity.appName,
-            shortDescription = entity.shortDescription,
-            iconUrl = entity.iconUrl,
-            categories = entity.categories,
-            screenshots = entity.fileUrls.map { it.fileUrl },
-            ageRating = entity.ageRestriction.category,
-            developer = entity.companyName,
-            appSize = entity.fileSize
+            url = entity?.packageName ?: "",
+            appName = entity?.appName ?: "",
+            shortDescription = entity?.shortDescription ?: "",
+            iconUrl = entity?.iconUrl ?: "",
+            categories = entity?.categories ?: emptyList(),
+            screenshots = entity?.fileUrls?.map { it.fileUrl } ?: emptyList(),
+            ageRating = entity?.ageRestriction?.category ?: "",
+            developer = entity?.companyName ?: "",
+            appSize = entity?.fileSize ?: 0,
+            isInWishlist = entity?.isInWishlist ?: false
         )
     }
 

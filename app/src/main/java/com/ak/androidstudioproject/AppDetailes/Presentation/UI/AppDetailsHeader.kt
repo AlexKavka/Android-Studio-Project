@@ -70,13 +70,13 @@ fun AppDetailsHeader(
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.height(4.dp))
-                    Text(text = "Возвраст", fontWeight = FontWeight.Bold) //stringResource(R.string.app_details_age))
+                    Text(text = "Возвраст", fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(12.dp))
                 Column {
                     Text(text = "${app.appSize / 1024 / 1024} MB", fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(4.dp))
-                    Text(text = "Размер", fontWeight = FontWeight.Bold) //stringResource(R.string.app_details_size))
+                    Text(text = "Размер", fontWeight = FontWeight.Bold)
                 }
             }
         }

@@ -21,7 +21,7 @@ fun AppDescription(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
-        Text(text = "Описание приложения", fontWeight = FontWeight.Bold, color = Color.Black)// stringResource(R.string.app_details_description))
+        Text(text = "Описание приложения", fontWeight = FontWeight.Bold, color = Color.Black)
         Spacer(Modifier.height(8.dp))
         Text(
             text = description,
@@ -34,7 +34,7 @@ fun AppDescription(
                 contentPadding = PaddingValues(horizontal = 0.dp)
             ) {
                 Text(
-                    text = "Читать подробнее", //stringResource("R.string.app_details_read_more"),
+                    text = "Читать подробнее",
                     fontWeight = FontWeight.Bold,
                     color = Color.Blue
                 )

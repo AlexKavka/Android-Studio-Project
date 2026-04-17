@@ -23,5 +23,6 @@ data class FullCardEntity(
     val ageRestriction: AgeRestriction,
     val rating: Rating?,
     val downloads: Int?,
-    val price: Int?
+    val price: Int?,
+    val isInWishlist: Boolean = false
 )

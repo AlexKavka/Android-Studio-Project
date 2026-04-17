@@ -1,6 +1,5 @@
 package com.ak.androidstudioproject.AppList.Presentation.ViewModel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ak.androidstudioproject.AppList.Domain.*

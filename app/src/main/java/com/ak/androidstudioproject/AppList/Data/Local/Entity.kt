@@ -3,7 +3,6 @@ package com.ak.androidstudioproject.AppList.Data.Local
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.ak.androidstudioproject.AppList.Data.Remote.PreCardDTO
-import com.google.gson.Gson
 
 @Entity(tableName = "pre_card_cache")
 data class PreCardEntity(

@@ -40,35 +40,32 @@ sealed interface ListState {
 
 @HiltViewModel
 class ListViewModel @Inject constructor(
-    private val rep : AppsListRepository
-) : ViewModel () {
+    private val getAppUrlsUseCase: GetAppUrlsUseCase,
+    private val validateAppUrlsUseCase: ValidateAppUrlsUseCase
+) : ViewModel() {
 
     private val _listState = MutableStateFlow<ListState>(ListState.Initial)
-    val listState : StateFlow<ListState> = _listState.asStateFlow()
+    val listState: StateFlow<ListState> = _listState.asStateFlow()
 
     private val _refreshTrigger = MutableSharedFlow<Unit>()
     val refreshTrigger: SharedFlow<Unit> = _refreshTrigger.asSharedFlow()
 
-    private val _cardsStates = MutableStateFlow<Map<String, PreCardState>>(emptyMap())
-    private val cardState: StateFlow<Map<String, PreCardState>> = _cardsStates.asStateFlow()
-
     private fun loadAppsUrls() {
-        viewModelScope.launch(Dispatchers.IO) {
-
+        viewModelScope.launch {
             val currentState = _listState.value
             if (currentState is ListState.Loading || currentState is ListState.Success) {
                 return@launch
             }
 
             _listState.value = ListState.Loading
-            runCatching {
-                val appUrls = rep.getAppUrls()
 
-                if (appUrls != null && appUrls.urls.isNotEmpty()) {
-                    _listState.value = ListState.Success(appUrls)
-                }
-                else {
-                    _listState.value = ListState.Error(true)
+            runCatching {
+                getAppUrlsUseCase()
+            }.onSuccess { appUrls ->
+                _listState.value = if (validateAppUrlsUseCase(appUrls)) {
+                    ListState.Success(appUrls as AppList)
+                } else {
+                    ListState.Error(true)
                 }
             }.onFailure {
                 _listState.value = ListState.Error(true)
@@ -95,7 +92,7 @@ class ListViewModel @Inject constructor(
 
 @HiltViewModel
 class PreCardViewModel @Inject constructor(
-    private val rep: AppsListRepository
+    private val getAppPreCardUseCase: GetAppPreCardUseCase
 ) : ViewModel() {
 
     private val _preCardState = MutableStateFlow<PreCardState>(PreCardState.Initial)
@@ -124,14 +121,15 @@ class PreCardViewModel @Inject constructor(
     }
 
     private fun forceLoadPreCard() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             _preCardState.value = PreCardState.Loading
             runCatching {
-                val preCard = rep.getAppPreCard(currentPackageName)
-                if (preCard != null) {
-                    _preCardState.value = PreCardState.Success(preCard)
+                getAppPreCardUseCase(currentPackageName)
+            }.onSuccess { preCard ->
+                _preCardState.value = if (preCard != null) {
+                    PreCardState.Success(preCard)
                 } else {
-                    _preCardState.value = PreCardState.Error(true)
+                    PreCardState.Error(true)
                 }
             }.onFailure {
                 _preCardState.value = PreCardState.Error(true)
@@ -140,21 +138,21 @@ class PreCardViewModel @Inject constructor(
     }
 
     private fun loadPreCard() {
-        viewModelScope.launch(Dispatchers.IO) {
-
+        viewModelScope.launch {
             val currentState = _preCardState.value
             if (currentState is PreCardState.Loading || currentState is PreCardState.Success) {
                 return@launch
             }
 
             _preCardState.value = PreCardState.Loading
+
             runCatching {
-                val preCard = rep.getAppPreCard(currentPackageName)
-                if (preCard != null) {
-                    _preCardState.value = PreCardState.Success(preCard)
-                }
-                else {
-                    _preCardState.value = PreCardState.Error(true)
+                getAppPreCardUseCase(currentPackageName)
+            }.onSuccess { preCard ->
+                _preCardState.value = if (preCard != null) {
+                    PreCardState.Success(preCard)
+                } else {
+                    PreCardState.Error(true)
                 }
             }.onFailure {
                 _preCardState.value = PreCardState.Error(true)

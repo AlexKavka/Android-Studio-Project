@@ -43,7 +43,6 @@ class PreCardMapper @Inject constructor() {
 
 @Singleton
 class ListMapper @Inject constructor(){
-    private val gson = Gson()
 
     fun extractPackageNamesFromHtml(html: String): List<String> {
         val packageNames = mutableSetOf<String>()

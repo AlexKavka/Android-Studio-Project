@@ -5,9 +5,12 @@ import com.ak.androidstudioproject.AppDetailes.Data.Remote.FullCardDTO
 import com.ak.androidstudioproject.AppDetailes.Data.Remote.Rating
 import com.ak.androidstudioproject.AppDetailes.Domain.FullCardInfo
 import com.google.gson.Gson
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.String
 
-class AppDetailsMapper {
+@Singleton
+class AppDetailsMapper @Inject constructor(){
 
     fun toDomain(dto: FullCardDTO?): FullCardInfo? {
         return dto?.let { response ->
